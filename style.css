@@ -1,0 +1,123 @@
+#sbvp-settings label,
+#sbvp-dialog label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0.65rem 0;
+}
+
+#sbvp-settings .checkbox_label,
+#sbvp-dialog .checkbox_label {
+  align-items: center;
+  flex-direction: row;
+}
+
+.sbvp-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.sbvp-busy {
+  cursor: progress;
+}
+
+.sbvp-busy button:not([data-sbvp-stop]) {
+  pointer-events: none;
+  opacity: 0.65;
+}
+
+#sbvp-dialog {
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  padding: 0;
+  color: var(--SmartThemeBodyColor);
+  background: var(--SmartThemeBlurTintColor);
+  border: 1px solid var(--SmartThemeBorderColor);
+  border-radius: 12px;
+  box-shadow: 0 16px 50px rgb(0 0 0 / 45%);
+}
+
+#sbvp-dialog::backdrop {
+  background: rgb(0 0 0 / 58%);
+  backdrop-filter: blur(3px);
+}
+
+.sbvp-dialog-card {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.sbvp-dialog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 1.08rem;
+}
+
+.sbvp-dialog-header button {
+  min-width: 2.4rem;
+  font-size: 1.3rem;
+}
+
+.sbvp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 0.8rem;
+}
+
+.sbvp-status {
+  min-height: 1.4em;
+  margin: 0.65rem 0;
+  color: var(--SmartThemeQuoteColor);
+}
+
+.sbvp-status.sbvp-error {
+  color: #ff7070;
+}
+
+#sbvp-dialog audio {
+  display: block;
+  width: 100%;
+}
+
+.sbvp-dialog-actions {
+  justify-content: flex-end;
+}
+
+#sbvp-selection-button {
+  position: absolute;
+  z-index: 10000;
+  width: 40px;
+  height: 40px;
+  color: white;
+  background: #7257d8;
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: 50%;
+  box-shadow: 0 4px 16px rgb(0 0 0 / 40%);
+  cursor: pointer;
+}
+
+#sbvp-selection-button:hover {
+  filter: brightness(1.12);
+}
+
+@media (max-width: 600px) {
+  .sbvp-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #sbvp-dialog {
+    max-height: calc(100dvh - 8px);
+    width: calc(100vw - 8px);
+  }
+
+  .sbvp-dialog-card {
+    padding: 0.8rem;
+  }
+
+  .sbvp-dialog-actions .menu_button {
+    flex: 1 1 auto;
+  }
+}

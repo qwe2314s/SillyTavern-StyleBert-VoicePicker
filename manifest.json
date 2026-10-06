@@ -1,0 +1,11 @@
+{
+  "display_name": "Style-Bert Voice Picker",
+  "loading_order": 50,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "Lemon",
+  "version": "0.1.0",
+  "auto_update": true
+}
