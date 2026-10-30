@@ -1,109 +1,128 @@
 # SillyTavern Style-Bert Voice Picker
 
-一个可通过 SillyTavern 的 **Install Extension** 安装的纯前端扩展。选中 AI 回复中的台词，指定 Style-Bert-VITS2 模型与说话人，即可在当前电脑或手机浏览器中合成并播放语音。
+在酒馆里直接选角色音色、情绪和合成参数，用自己电脑上的 Style-Bert-VITS2 生成语音。支持选中台词朗读、AI 消息按钮、角色音色绑定和 WAV 下载。
 
-## 功能
+## 0.2.0 新功能
 
-- 桌面与手机页面兼容。
-- 选中文字后显示浮动朗读按钮。
-- AI 消息菜单中提供扬声器按钮，优先提取中文引号内的台词。
-- 从 Style-Bert-VITS2 `/models/info` 自动读取模型、speaker 和 style。
-- 使用 SillyTavern 当前配置的 LLM 自动选择模型实际存在的 style。
-- 可手动调整 style、风格强度、语速、语言和辅助情绪文本。
-- 长文本按标点切成不超过 100 字的片段，串行请求以降低显存压力。
-- 当前页面会话内缓存最近 30 段音频。
-- 多段音频顺序播放；手机禁止自动播放时保留原生音频控件。
+- 音色模型、speaker、训练检查点、情绪风格都能在弹窗选择。
+- 支持风格强度、Length、SDP Ratio、Noise、Noise_W、分句与停顿、辅助文字及强度。
+- 使用配套 API 时，还支持真正生效的音高、抑扬和训练检查点切换。
+- 按角色卡 avatar 保存音色与合成设置；群聊按消息发言角色匹配，不把其他角色的音色误套过来。
+- 全局默认与单次弹窗设置分开；修改一次合成不会悄悄覆盖所有角色。
+- 默认关闭 LLM 情绪识别和辅助文字，按需启用；LLM 功能会调用酒馆当前模型。
+- 长台词串行分段，合成为一个可重复播放、下载的 WAV；浏览器禁止自动播放时可手动播放。
+- 可兼容原版 2.7.x API；不支持的高级控件会禁用并说明原因。
+- 附带本机 API 启动器和可选同源代理。API 默认只监听本机，不需要把语音端口开放给公网。
 
-## 要求
+## 安装前端扩展
 
-- 当前版本的 SillyTavern。
-- [Style-Bert-VITS2 2.7.x](https://github.com/litagin02/Style-Bert-VITS2) API Server。
-- 至少一个可被 Style-Bert-VITS2 发现的模型目录。
-- 手机和运行 Style-Bert-VITS2 的电脑位于同一局域网。
+1. 酒馆的 **扩展 → 安装扩展**，粘贴：
+   `https://github.com/qwe2314s/SillyTavern-StyleBert-VoicePicker`
+2. 安装或更新后刷新酒馆。旧版已安装的用户在扩展管理中更新即可。
+3. 扩展设置中展开 **Style-Bert Voice Picker**。
 
-## 安装
+如果手动复制安装，把本仓库完整目录放进 SillyTavern 的 `public/scripts/extensions/third-party/`。`index.js` 和 `core.js` 必须保持同级，不要只复制其中一个。
 
-1. 在 SillyTavern 打开 `Extensions`。
-2. 点击 `Install Extension`。
-3. 粘贴本仓库的 Git URL。
-4. 安装完成后刷新页面。
-5. 在扩展设置中展开 **Style-Bert Voice Picker**。
+## 电脑本机快速开始
 
-## Style-Bert-VITS2 配置
+本机已经有训练好的模型时，无需再训练，也无需重新预处理。
 
-启动 API Server：
+1. 找到扩展安装目录里的 `tools/Start-Local-TTS.cmd` 并双击。它使用本机现有的：
+   - Python：`E:\sbv2\venv\Scripts\python.exe`
+   - Style-Bert-VITS2：`E:\sbv2\Style-Bert-VITS2`
+   - 模型：上述目录下的 `model_assets`
+2. 其他安装位置请编辑启动器中的 Python 和程序路径，或手动运行：
 
-```powershell
-python server_fastapi.py
-```
+   ```powershell
+   & "E:\sbv2\venv\Scripts\python.exe" -B "扩展目录\tools\voice_server.py" `
+     --sbv2-dir "E:\sbv2\Style-Bert-VITS2"
+   ```
 
-Style-Bert-VITS2 2.7.x 默认监听 `0.0.0.0:5000`。请检查 `config.yml`：
+3. 等窗口显示 `http://127.0.0.1:5000`。这个是 API；Gradio 合成网页的 `7860` 端口不能填作 API 地址。
+4. 酒馆扩展连接方式选 **浏览器直连本机 API**，地址填 `http://127.0.0.1:5000`，点击 **测试连接**。
+5. 选择音色模型，例如 `fll_emotion`；speaker 选同名角色，版本先选 `e100_s15000`，风格先选 `Normal`。
+6. 点击 **打开语音面板** 输入台词，或使用 AI 消息上的朗读按钮，点击 **生成并播放**。
 
-```yaml
-server:
-  port: 5000
-  device: "cuda"
-  language: "ZH"
-  limit: 100
-  origins:
-    - "http://127.0.0.1:8000"
-    - "http://localhost:8000"
-    - "http://192.168.1.100:8000"
-```
+配套 API 默认按文件名中的训练步数选择最新版，不依赖字母顺序。不会在启动时预加载日语 BERT；GPU 不可用时自动回退 CPU。已有 Gradio 服务加载了模型、显存不足时，可先关闭该服务，或用启动器增加 `--device cpu` 参数。首句要加载模型，会比后续慢。
 
-将示例中的 `192.168.1.100` 替换为运行 SillyTavern 和 Style-Bert-VITS2 的电脑局域网 IP。SillyTavern 端口也应按实际值修改。
+该 API 使用 Style-Bert-VITS2 原环境依赖，不下载本仓库以外的新代码、不修改训练数据。`--models-dir` 可指定另一份模型目录；`--port` 可更换端口。
 
-Windows 防火墙需要允许 TCP 5000 端口的专用网络入站连接。不要把 5000 端口直接暴露到互联网；Style-Bert-VITS2 API 本身没有身份验证。
+## 给每个角色记住音色
 
-在浏览器访问以下地址可验证服务：
+1. 打开该角色的一条 AI 消息，点击扬声器按钮。
+2. 选择模型、speaker、版本、风格，并设置所需参数。
+3. 点击 **保存为此角色音色**。
+4. 以后打开同角色的消息时，会自动恢复该配置。**清除角色绑定** 移除保存记录；**使用全局默认** 只重置当前面板。
+
+群聊优先根据消息里的 `original_avatar` 匹配角色卡，其次使用不重名的角色名。无法唯一匹配时会使用全局默认并说明，不猜测音色。角色卡 avatar 文件名改变后，需要重新绑定。
+
+## 参数
+
+| 参数 | 起步值 | 作用 |
+|---|---:|---|
+| 风格 | Normal | 人工分类的普通对白；Neutral 是全体平均风格 |
+| 风格强度 | 1 | 选中风格的强度，过高可能损失发音稳定性 |
+| Length | 1 | 小于 1 更快，大于 1 更慢 |
+| SDP Ratio | 0.2 | 字长与节奏的随机程度 |
+| Noise | 0.6 | 合成细节的随机变化，非背景噪声音量 |
+| Noise_W | 0.8 | 随机字长变化幅度 |
+| 音高 / 抑扬 | 1 / 1 | 配套 API 提供；改变可能损失音质 |
+| 分段停顿 | 0.5 秒 | API 分行和前端长文本分段间的停顿 |
+| 辅助文字强度 | 0.3 | 辅助语义/情绪引导，默认关闭该功能 |
+| 单段字数 | 90 | 原版 API 默认最多 100 字；配套 API 每段最多 500 字 |
+
+音量是浏览器播放器音量，不改变保存的 WAV。风格强度设 0 会回到平均风格；选择 Neutral 时，调高风格强度通常不会改变向量。建议固定一句台词，每次只改一项。
+
+自动识别情绪会调用酒馆当前配置的 LLM，不会把音频上传给 LLM；提示中只包含本次台词和可选风格。是否计费取决于当前 LLM 服务。关闭此选项即可完全手动指定风格。
+
+## 手机或 HTTPS 酒馆使用同源代理
+
+手机上的 `127.0.0.1` 是手机自身，无法指向电脑；HTTPS 页面也不能直连 HTTP API。推荐使用本仓库的可选服务端代理：
 
 ```text
-http://127.0.0.1:5000/models/info
-http://电脑局域网IP:5000/models/info
+手机或电脑浏览器 → 已认证的酒馆 → 同机 127.0.0.1:5000 → Style-Bert-VITS2
 ```
 
-## 扩展设置
+1. 将本仓库 `server-plugin` 目录复制到酒馆 `plugins/sbvp-local-proxy`。
+2. 按酒馆官方服务端插件流程，在 `config.yaml` 中启用 `enableServerPlugins: true`，然后重启酒馆。它启用的是服务端代码执行功能，安装前请审阅本仓库的代理代码；本项目不会替你静默修改此开关。
+3. 本机 TTS API 保持只监听 `127.0.0.1:5000`。
+4. 前端扩展连接方式选择 **酒馆同源代理**，然后测试连接。该模式不读取浏览器填写的 API 地址。
 
-- **API 地址**：电脑使用 `http://127.0.0.1:5000`；手机应使用 `http://电脑局域网IP:5000`。如果手机和电脑共用同一个 SillyTavern 地址，扩展默认推导为 `http://当前酒馆主机:5000`。
-- **默认模型 / 说话人 / 风格**：连接成功后从 API 自动加载。
-- **默认语言**：稳定版支持 `ZH`、`JP` 和 `EN`。JP-Extra 模型只能使用 `JP`。
-- **自动识别情绪**：合成前调用当前 SillyTavern LLM；关闭后直接使用手选 style。
-- **辅助情绪文本**：可以增强情绪，但某些模型上可能损失韵律，可随时关闭。
-- **单段字符数**：默认 90，上限 100，与 Style-Bert 默认限制匹配。
+代理只转发 `/models/info`、`/models/refresh`、`/capabilities` 和 `/voice` 到固定回环地址；不接受任意上游 URL、不开放读取本机文件的接口。酒馆原有的认证、访问范围和 CSRF 保护保持生效。若本机 API 换了端口，设置酒馆服务进程的 `SBVP_API_URL` 环境变量，例如 `http://127.0.0.1:5001`，然后重启。
 
-## 使用
+可选择直连可信私网地址，但需自行设置准确的 `--host` 和 `--allow-origin`，并限制网络访问。默认启动器不这样做；无需为电脑本机使用增加防火墙放行或公网映射。
 
-### 选中文字
+## 原版 API 兼容模式
 
-1. 在 AI 回复中选中一句或一段台词。
-2. 点击选区附近出现的紫色扬声器按钮。
-3. 确认音色和情绪，点击 **生成并播放**。
+可以连接已启动的 `server_fastapi.py`：`GET /models/info`、`POST /models/refresh`、`POST /voice?...`。上游 2.7.x 的 POST 仍使用 URL query 参数。原版不接收音高、抑扬和检查点参数，因此这些控件会禁用；不会显示一个无效但看似可用的开关。
 
-### 手机或整条消息
+本项目面向当前已核对的 SillyTavern 1.14.x 与 Style-Bert-VITS2 2.7.x。JP-Extra 模型仅支持 JP；中文模型语言选择 ZH。零模型混合、重训练与参考音频上传不在此版本功能范围内。
 
-1. 打开 AI 消息的操作菜单。
-2. 点击扬声器按钮。
-3. 扩展会优先提取 `“……”`、`「……」`、`『……』` 中的内容；没有引号时使用整条消息。
-4. 在弹窗中编辑台词后合成。
+## 常见问题
 
-## 已知限制
+- **连接失败**：先在电脑访问 `http://127.0.0.1:5000/models/info`；确认填的是 API 端口，查看 TTS 窗口错误。换了酒馆来源地址时，需匹配 CORS；手机推荐同源代理。
+- **音高控件不可用**：目前连接的是原版 API，改用 `tools/Start-Local-TTS.cmd`。不要同时在同一端口启动两个服务。
+- **接口超时**：首句加载或 CPU 推理可能较慢；请求总超时为 120 秒。检查服务窗口和设备占用。
+- **停止后电脑仍忙**：停止会中断浏览器请求与播放，服务端已进入的推理可能仍需完成；服务端会串行执行模型推理。
+- **无自动播放声音**：点击原生播放器播放。合成成功后的音频会保留，可重复播放和下载。
+- **更新后界面没变**：确认已更新正确扩展，刷新页面，必要时强制刷新；勿同时安装两份同名插件。
 
-- 这是纯前端扩展。为了做到一次 Git 安装，浏览器必须能直接访问 Style-Bert-VITS2 的 5000 端口。
-- 如果 SillyTavern 页面使用 HTTPS，而 Style-Bert-VITS2 使用 HTTP，浏览器会因混合内容策略阻止请求。两者必须使用相同协议，或通过可信反向代理统一入口。
-- CORS 不是访问控制。请使用 Windows 防火墙限制为可信局域网。
-- Style-Bert-VITS2 的 POST `/voice` 仍使用 URL query 参数，这是上游 2.7.x API 的设计。
-- 扩展只负责推理，不负责训练或下载角色模型。
+## 开发与验证
 
-## API 兼容性
+无前端运行时依赖，无需构建：
 
-本扩展按 Style-Bert-VITS2 `2.7.x` 的以下接口实现：
+```powershell
+npm run check
+npm test
+& "E:\sbv2\venv\Scripts\python.exe" -B -m unittest discover -s tests -p "test_*.py"
+```
 
-- `GET /models/info`
-- `POST /models/refresh`
-- `POST /voice?...`，成功响应为 `audio/wav`
+Node 测试验证参数映射、旧 API 降级、Unicode 分段、角色识别、WAV 合并、请求取消/超时与代理边界。Python 测试使用假引擎验证 API 合约及 CORS，不加载声学模型。真实模型和 UI 联调还需本地运行：
 
-未发布的 v3 开发分支目前只支持日语，不属于本版本的兼容目标。
+```powershell
+node tests/serve-harness.mjs
+```
 
-## License
+打开 `http://127.0.0.1:8765/tests/harness.html`。联调页只含合成示例消息，LLM 分析使用固定假返回，不读取真实聊天。测试直连时请给配套 API 增加 `--allow-origin http://127.0.0.1:8765`，并根据实际需要同时列出酒馆来源。
 
-MIT
+MIT License。角色音频、训练数据和模型权重不包含在本仓库中。

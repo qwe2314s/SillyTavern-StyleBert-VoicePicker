@@ -23,7 +23,7 @@
   cursor: progress;
 }
 
-.sbvp-busy button:not([data-sbvp-stop]) {
+.sbvp-busy button:not([data-sbvp-stop]):not([data-close]) {
   pointer-events: none;
   opacity: 0.65;
 }
@@ -32,9 +32,9 @@
   width: min(680px, calc(100vw - 24px));
   max-height: calc(100dvh - 24px);
   padding: 0;
-  color: var(--SmartThemeBodyColor);
-  background: var(--SmartThemeBlurTintColor);
-  border: 1px solid var(--SmartThemeBorderColor);
+  color: var(--SmartThemeBodyColor, #eee);
+  background: var(--SmartThemeBlurTintColor, #24242c);
+  border: 1px solid var(--SmartThemeBorderColor, #666);
   border-radius: 12px;
   box-shadow: 0 16px 50px rgb(0 0 0 / 45%);
 }
@@ -48,6 +48,16 @@
   padding: 1rem;
   overflow-y: auto;
 }
+
+.sbvp-hint { font-size: 0.88em; line-height: 1.5; opacity: 0.85; }
+#sbvp-dialog details, #sbvp-settings details { margin: 0.7rem 0; }
+#sbvp-dialog summary, #sbvp-settings summary { cursor: pointer; }
+#sbvp-dialog input:disabled, #sbvp-dialog select:disabled,
+#sbvp-settings input:disabled, #sbvp-settings select:disabled { opacity: 0.5; }
+#sbvp-dialog [hidden] { display: none !important; }
+#sbvp-dialog input, #sbvp-dialog select, #sbvp-dialog textarea { box-sizing: border-box; width: 100%; }
+#sbvp-dialog input[type="checkbox"] { width: auto; }
+#sbvp-dialog a.menu_button { text-decoration: none; }
 
 .sbvp-dialog-header {
   display: flex;

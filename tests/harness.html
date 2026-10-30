@@ -1,0 +1,18 @@
+<!doctype html><html lang="zh"><meta charset="utf-8"><title>Voice Picker 本机联调</title>
+<link rel="stylesheet" href="../style.css"><style>
+body{background:#1b1b22;color:#eee;font:16px system-ui;max-width:1000px;margin:32px auto;padding:16px}
+.text_pole{background:#34343f;color:white;border:1px solid #60606c;padding:8px;border-radius:6px}
+.menu_button{background:#464163;color:white;border:1px solid #77718d;padding:9px 12px;border-radius:6px;cursor:pointer}
+.inline-drawer-content{margin:16px 0}.mes{padding:20px;border:1px solid #666;border-radius:8px}.mes_buttons{display:flex;gap:10px}
+select,input,textarea{max-width:100%}.sbvp-message-button{cursor:pointer;padding:8px}.sbvp-message-button::before{content:'🔊 朗读'}
+</style><h1>Style-Bert Voice Picker 联调页</h1><p>仅使用示例台词，不读取真实聊天或调用 LLM。</p><div id="notices" role="status"></div>
+<div id="chat"><div class="mes" mesid="0"><p>弗洛洛说：“你好，今天想听我演奏什么？”</p><div class="mes_buttons"></div></div></div>
+<div id="extensions_settings"></div>
+<script>
+const state={extensionSettings:{},characterId:0,characters:[{name:'弗洛洛',avatar:'test-fll.png'}],
+chat:[{name:'弗洛洛',mes:'弗洛洛说：“你好，今天想听我演奏什么？”',is_user:false}],
+saveSettingsDebounced(){localStorage.setItem('sbvp-test-settings',JSON.stringify(this.extensionSettings))},
+generateRaw:async()=>JSON.stringify({style:'Calm',style_weight:1,assist_text:'静静听着，别着急。'})};
+try{state.extensionSettings=JSON.parse(localStorage.getItem('sbvp-test-settings')||'{}')}catch{}
+window.SillyTavern={getContext:()=>state};window.toastr={success:m=>document.querySelector('#notices').textContent=m,error:m=>document.querySelector('#notices').textContent=m};
+</script><script type="module" src="../index.js"></script></html>
